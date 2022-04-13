@@ -26,7 +26,11 @@ func (r *Reactable) queueSwirl(rt core.ReactionType, ele core.EleType, tag core.
 	}
 	char := r.core.Chars[charIndex]
 	em := char.Stat(core.EM)
-	ai.FlatDmg = 0.6 * r.calcReactionDmg(ai, em)
+	ai.AddFlatDmg(core.FlatDamage{
+		ActorIndex: ai.ActorIndex,
+		Abil:       ai.Abil,
+		Damage:     0.6 * r.calcReactionDmg(ai, em),
+	})
 	snap := core.Snapshot{
 		CharLvl:  char.Level(),
 		ActorEle: char.Ele(),
@@ -41,7 +45,7 @@ func (r *Reactable) queueSwirl(rt core.ReactionType, ele core.EleType, tag core.
 	)
 	//next is aoe - hydro swirls never do AoE damage, as they only spread the element
 	if ele == core.Hydro {
-		ai.FlatDmg = 0
+		ai.FlatDmg = nil
 	}
 	ai.Durability = dur
 	ai.Abil = string(rt) + " (aoe)"

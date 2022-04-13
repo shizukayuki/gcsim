@@ -37,7 +37,11 @@ func weapon(char core.Character, c *core.Core, r int, param map[string]int) stri
 			return false
 		}
 		baseDmgAdd := (atk.Snapshot.BaseDef*(1+atk.Snapshot.Stats[core.DEFP]) + atk.Snapshot.Stats[core.DEF]) * nacaBoost
-		atk.Info.FlatDmg += baseDmgAdd
+		atk.Info.AddFlatDmg(core.FlatDamage{
+			ActorIndex: char.CharIndex(),
+			Abil:       "redhorn",
+			Damage:     baseDmgAdd,
+		})
 
 		c.Log.NewEvent("Redhorn proc dmg add", core.LogPreDamageMod, char.CharIndex(), "base_added_dmg", baseDmgAdd)
 

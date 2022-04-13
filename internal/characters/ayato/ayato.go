@@ -190,7 +190,11 @@ func (c *char) Snapshot(ai *core.AttackInfo) core.Snapshot {
 		ai.Element = core.Hydro
 		//add namisen stack
 		flatdmg := (c.Base.HP*(1+ds.Stats[core.HPP]) + ds.Stats[core.HP]) * skillpp[c.TalentLvlSkill()] * float64(c.stacks)
-		ai.FlatDmg += flatdmg
+		ai.AddFlatDmg(core.FlatDamage{
+			ActorIndex: c.Index,
+			Abil:       "namisen",
+			Damage:     flatdmg,
+		})
 		c.Core.Log.NewEvent("namisen add damage", core.LogCharacterEvent, c.Index, "damage_added", flatdmg, "stacks", c.stacks, "expiry", c.Core.Status.Duration("soukaikanka"))
 	}
 	return ds

@@ -71,3 +71,24 @@ func (c *char) a2() {
 		return float64(c.Tags["a2"]) * 0.05
 	})
 }
+
+func (c *char) a4(a core.AttackTag) core.FlatDamage {
+	extra := core.FlatDamage{
+		ActorIndex: c.Index,
+		Abil:       "zhongli-a4",
+		Damage:     c.HPMax,
+	}
+
+	switch a {
+	case core.AttackTagNormal, core.AttackTagExtra:
+		extra.Damage *= 0.0139
+	case core.AttackTagElementalArt, core.AttackTagElementalArtHold:
+		extra.Damage *= 0.019
+	case core.AttackTagElementalBurst:
+		extra.Damage *= 0.33
+	default:
+		return core.FlatDamage{}
+	}
+
+	return extra
+}

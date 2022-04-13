@@ -214,7 +214,12 @@ func (c *char) burstProc() {
 		// }
 		stats, _ := c.SnapshotStats()
 		dmgAdded := (c.Base.Def*(1+stats[core.DEFP]) + stats[core.DEF]) * finalBurstBuff
-		ae.Info.FlatDmg += dmgAdded
+
+		ae.Info.AddFlatDmg(core.FlatDamage{
+			ActorIndex: c.Index,
+			Abil:       "yunjin-burst",
+			Damage:     dmgAdded,
+		})
 
 		c.burstTriggers[ae.Info.ActorIndex]--
 		c.updateBuffTags()

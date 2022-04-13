@@ -30,7 +30,11 @@ func weapon(char core.Character, c *core.Core, r int, param map[string]int) stri
 			return false
 		}
 		damageAdd := (atk.Snapshot.BaseDef*(1+atk.Snapshot.Stats[core.DEFP]) + atk.Snapshot.Stats[core.DEF]) * defPer
-		atk.Info.FlatDmg += damageAdd
+		atk.Info.AddFlatDmg(core.FlatDamage{
+			ActorIndex: char.CharIndex(),
+			Abil:       "cinnabarspindle",
+			Damage:     damageAdd,
+		})
 
 		c.Log.NewEvent("Cinnabar Spindle proc dmg add", core.LogPreDamageMod, char.CharIndex(), "damage_added", damageAdd, "lastproc", effectLastProc, "effect_ends_at", effectDurationExpiry, "effect_icd_ends_at", effectICDExpiry)
 

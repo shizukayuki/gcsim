@@ -43,9 +43,9 @@ type AttackInfo struct {
 	HitWeakPoint     bool
 	Mult             float64 //ability multiplier. could set to 0 from initial Mona dmg
 	StrikeType       StrikeType
-	UseDef           bool    //we use this instead of flatdmg to make sure stat snapshotting works properly
-	FlatDmg          float64 //flat dmg;
-	IgnoreDefPercent float64 //by default this value is 0; if = 1 then the attack will ignore defense; raiden c2 should be set to 0.6 (i.e. ignore 60%)
+	UseDef           bool         //we use this instead of flatdmg to make sure stat snapshotting works properly
+	FlatDmg          []FlatDamage //flat dmg;
+	IgnoreDefPercent float64      //by default this value is 0; if = 1 then the attack will ignore defense; raiden c2 should be set to 0.6 (i.e. ignore 60%)
 	IgnoreInfusion   bool
 	//amp info
 	Amped   bool         //new flag used by new reaction system

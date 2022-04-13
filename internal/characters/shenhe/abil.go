@@ -304,7 +304,11 @@ func (c *char) quillDamageMod() {
 				"effect_ends_at", c.Core.Status.Duration(quillKey),
 				"quills left", c.quillcount[atk.Info.ActorIndex],
 			)
-			atk.Info.FlatDmg += amt
+			atk.Info.AddFlatDmg(core.FlatDamage{
+				ActorIndex: c.Index,
+				Abil:       "shenhe-quills",
+				Damage:     amt,
+			})
 			if c.Base.Cons >= 4 {
 				if c.c4count < 50 {
 					c.c4count++

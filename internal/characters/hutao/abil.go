@@ -122,7 +122,11 @@ func (c *char) bbtickfunc(src int) func() {
 		}
 		//if cons 2, add flat dmg
 		if c.Base.Cons >= 2 {
-			ai.FlatDmg += c.HPMax * 0.1
+			ai.AddFlatDmg(core.FlatDamage{
+				ActorIndex: c.Index,
+				Abil:       "hutao-c2",
+				Damage:     c.HPMax * 0.1,
+			})
 		}
 		c.Core.Combat.QueueAttack(ai, core.NewDefSingleTarget(1, core.TargettableEnemy), 0, 0)
 		c.Core.Log.NewEvent("Blood Blossom ticked", core.LogCharacterEvent, c.Index, "next expected tick", c.Core.F+240, "dur", c.Core.Status.Duration("htbb"), "src", src)

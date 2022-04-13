@@ -11,7 +11,7 @@ func init() {
 
 type char struct {
 	*character.Tmpl
-	skillFlatDmg  float64
+	skillFlatDmg  core.FlatDamage
 	skillLastUsed int
 	swapEarlyF    int
 	c4ICDExpiry   int
@@ -38,7 +38,6 @@ func NewChar(s *core.Core, p core.CharacterProfile) (core.Character, error) {
 	c.SkillCon = 5
 	c.CharZone = core.ZoneInazuma
 
-	c.skillFlatDmg = 0
 	c.skillLastUsed = 0
 	c.swapEarlyF = 0
 	c.c4ICDExpiry = 0
@@ -79,7 +78,11 @@ func (c *char) a4() {
 		}
 
 		a4Bonus := c.Stat(core.Heal) * 0.15 * c.HPMax
-		atk.Info.FlatDmg += a4Bonus
+		atk.Info.AddFlatDmg(core.FlatDamage{
+			ActorIndex: c.Index,
+			Abil:       "kokomi-a4",
+			Damage:     a4Bonus,
+		})
 
 		return false
 	}, "kokomi-a4")

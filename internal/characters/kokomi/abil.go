@@ -26,7 +26,7 @@ func (c *char) Attack(p map[string]int) (int, int) {
 		Durability: 25,
 		Mult:       attack[c.NormalCounter][c.TalentLvlAttack()],
 	}
-	ai.FlatDmg = c.burstDmgBonus(ai.AttackTag)
+	ai.AddFlatDmg(c.burstDmgBonus(ai.AttackTag))
 
 	c.Core.Combat.QueueAttack(ai, core.NewDefSingleTarget(1, core.TargettableEnemy), 0, f+travel)
 	// TODO: Assume that this is not dynamic (snapshot on projectile release)
@@ -59,7 +59,11 @@ func (c *char) c1(f int) {
 		Durability: 25,
 		Mult:       0,
 	}
-	ai.FlatDmg = 0.3 * c.HPMax
+	ai.AddFlatDmg(core.FlatDamage{
+		ActorIndex: c.Index,
+		Abil:       ai.Abil,
+		Damage:     0.3 * c.HPMax,
+	})
 
 	// TODO: Frames not in library - Think it's 7 frames based on a rough count
 	// TODO: Is this snapshotted/dynamic?
@@ -82,7 +86,7 @@ func (c *char) ChargeAttack(p map[string]int) (int, int) {
 		Durability: 25,
 		Mult:       charge[c.TalentLvlAttack()],
 	}
-	ai.FlatDmg = c.burstDmgBonus(ai.AttackTag)
+	ai.AddFlatDmg(c.burstDmgBonus(ai.AttackTag))
 
 	c.Core.Combat.QueueAttack(ai, core.NewDefCircHit(2, false, core.TargettableEnemy), f, f)
 	return f, a
@@ -139,9 +143,9 @@ func (c *char) skillTick(d *core.AttackEvent) {
 	// check if skill has burst bonus snapshot
 	// max swap frame should be 40 frame before 2nd tick
 	if c.swapEarlyF > c.skillLastUsed && c.swapEarlyF < (c.skillLastUsed+120-40) {
-		d.Info.FlatDmg = c.skillFlatDmg
+		d.Info.AddFlatDmg(c.skillFlatDmg)
 	} else {
-		d.Info.FlatDmg = c.burstDmgBonus(d.Info.AttackTag)
+		d.Info.AddFlatDmg(c.burstDmgBonus(d.Info.AttackTag))
 	}
 
 	c.Core.Combat.QueueAttackEvent(d, 0)
@@ -216,7 +220,11 @@ func (c *char) Burst(p map[string]int) (int, int) {
 		Durability: 50,
 		Mult:       0,
 	}
-	ai.FlatDmg = burstDmg[c.TalentLvlBurst()] * c.HPMax
+	ai.AddFlatDmg(core.FlatDamage{
+		ActorIndex: c.Index,
+		Abil:       ai.Abil,
+		Damage:     burstDmg[c.TalentLvlBurst()] * c.HPMax,
+	})
 
 	c.Core.Combat.QueueAttack(ai, core.NewDefCircHit(5, false, core.TargettableEnemy), f, f)
 
@@ -252,18 +260,26 @@ func (c *char) Burst(p map[string]int) (int, int) {
 }
 
 // Helper function for determining whether burst damage bonus should apply
-func (c *char) burstDmgBonus(a core.AttackTag) float64 {
+func (c *char) burstDmgBonus(a core.AttackTag) core.FlatDamage {
 	if c.Core.Status.Duration("kokomiburst") == 0 {
-		return 0
+		return core.FlatDamage{}
 	}
+
+	var amt float64
 	switch a {
 	case core.AttackTagNormal:
-		return burstBonusNormal[c.TalentLvlBurst()] * c.HPMax
+		amt = burstBonusNormal[c.TalentLvlBurst()] * c.HPMax
 	case core.AttackTagExtra:
-		return burstBonusCharge[c.TalentLvlBurst()] * c.HPMax
+		amt = burstBonusCharge[c.TalentLvlBurst()] * c.HPMax
 	case core.AttackTagElementalArt:
-		return burstBonusSkill[c.TalentLvlBurst()] * c.HPMax
+		amt = burstBonusSkill[c.TalentLvlBurst()] * c.HPMax
 	default:
-		return 0
+		return core.FlatDamage{}
+	}
+
+	return core.FlatDamage{
+		ActorIndex: c.Index,
+		Abil:       "kokomi-burst-bonus",
+		Damage:     amt,
 	}
 }

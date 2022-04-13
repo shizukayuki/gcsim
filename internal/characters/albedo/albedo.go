@@ -283,7 +283,11 @@ func (c *char) Burst(p map[string]int) (int, int) {
 
 	//check stacks
 	if c.Base.Cons >= 2 && c.Core.Status.Duration("albedoc2") > 0 {
-		ai.FlatDmg += (snap.BaseDef*(1+snap.Stats[core.DEFP]) + snap.Stats[core.DEF]) * float64(c.Tags["c2"])
+		ai.AddFlatDmg(core.FlatDamage{
+			ActorIndex: c.Index,
+			Abil:       "albedo-c2",
+			Damage:     (snap.BaseDef*(1+snap.Stats[core.DEFP]) + snap.Stats[core.DEF]) * float64(c.Tags["c2"]),
+		})
 		c.Tags["c2"] = 0
 	}
 

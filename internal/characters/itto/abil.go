@@ -85,11 +85,15 @@ func (c *char) ChargeAttack(p map[string]int) (int, int) {
 		Element:    core.Physical,
 		Durability: 25,
 		Mult:       akCombo[c.TalentLvlAttack()],
-		FlatDmg:    0.35*c.Base.Def*(1+c.Stats[core.DEFP]) + c.Stats[core.DEF],
 	}
+	ai.AddFlatDmg(core.FlatDamage{
+		ActorIndex: c.Index,
+		Abil:       "superlative-superstrength-stack",
+		Damage:     0.35*c.Base.Def*(1+c.Stats[core.DEFP]) + c.Stats[core.DEF],
+	})
 	if c.Tags["strStack"] == 0 {
 		ai.Mult = saichiSlash[c.TalentLvlAttack()]
-		ai.FlatDmg = 0
+		ai.FlatDmg = nil
 	} else if c.Tags["strStack"] == 1 {
 		ai.Mult = akFinal[c.TalentLvlAttack()]
 	}

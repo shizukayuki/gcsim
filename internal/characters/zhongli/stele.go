@@ -16,8 +16,9 @@ func (c *char) newStele(dur int, max int) {
 		Element:    core.Geo,
 		Durability: 50,
 		Mult:       skill[c.TalentLvlSkill()],
-		FlatDmg:    0.019 * c.HPMax,
 	}
+	ai.AddFlatDmg(c.a4(ai.AttackTag))
+
 	c.Core.Combat.QueueAttack(ai, core.NewDefCircHit(2, false, core.TargettableEnemy), 0, 0)
 
 	//create a construct
@@ -53,8 +54,9 @@ func (c *char) newStele(dur int, max int) {
 		Element:    core.Geo,
 		Durability: 25,
 		Mult:       skillTick[c.TalentLvlSkill()],
-		FlatDmg:    0.019 * c.HPMax,
 	}
+	aiSnap.AddFlatDmg(c.a4(aiSnap.AttackTag))
+
 	snap := c.Snapshot(&aiSnap)
 	c.steleSnapshot = core.AttackEvent{
 		Info:        aiSnap,

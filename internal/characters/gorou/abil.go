@@ -89,7 +89,11 @@ func (c *char) Skill(p map[string]int) (int, int) {
 		}
 		//Inuzaka All-Round Defense: Skill DMG increased by 156% of DEF
 		snap := c.Snapshot(&ai)
-		ai.FlatDmg = (snap.BaseDef*snap.Stats[core.DEFP] + snap.Stats[core.DEF]) * 1.56
+		ai.AddFlatDmg(core.FlatDamage{
+			ActorIndex: c.Index,
+			Abil:       ai.Abil,
+			Damage:     (snap.BaseDef*snap.Stats[core.DEFP] + snap.Stats[core.DEF]) * 1.56,
+		})
 
 		c.Core.Combat.QueueAttackWithSnap(
 			ai,
@@ -209,7 +213,11 @@ func (c *char) Burst(p map[string]int) (int, int) {
 		}
 		//Juuga: Forward Unto Victory: Skill DMG and Crystal Collapse DMG increased by 15.6% of DEF
 		snap := c.Snapshot(&ai)
-		ai.FlatDmg = (snap.BaseDef*snap.Stats[core.DEFP] + snap.Stats[core.DEF]) * 0.156
+		ai.AddFlatDmg(core.FlatDamage{
+			ActorIndex: c.Index,
+			Abil:       ai.Abil,
+			Damage:     (snap.BaseDef*snap.Stats[core.DEFP] + snap.Stats[core.DEF]) * 0.156,
+		})
 
 		c.Core.Combat.QueueAttackWithSnap(
 			ai,
@@ -292,7 +300,11 @@ func (c *char) gorouCrystalCollapse(src int) func() {
 		}
 		//Juuga: Forward Unto Victory: Skill DMG and Crystal Collapse DMG increased by 15.6% of DEF
 		snap := c.Snapshot(&ai)
-		ai.FlatDmg = (snap.BaseDef*snap.Stats[core.DEFP] + snap.Stats[core.DEF]) * 0.156
+		ai.AddFlatDmg(core.FlatDamage{
+			ActorIndex: c.Index,
+			Abil:       "Juuga: Forward Unto Victory",
+			Damage:     (snap.BaseDef*snap.Stats[core.DEFP] + snap.Stats[core.DEF]) * 0.156,
+		})
 
 		c.Core.Combat.QueueAttackWithSnap(
 			ai,

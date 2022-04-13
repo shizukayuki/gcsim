@@ -59,7 +59,12 @@ func New(c core.Character, s *core.Core, count int, params map[string]int) {
 			// if buff is already active then buff attack
 			if s.F < procExpireF {
 				dmgAdded = (atk.Snapshot.BaseAtk*(1+atk.Snapshot.Stats[core.ATKP]) + atk.Snapshot.Stats[core.ATK]) * 0.7
-				atk.Info.FlatDmg += dmgAdded
+
+				atk.Info.AddFlatDmg(core.FlatDamage{
+					ActorIndex: c.CharIndex(),
+					Abil:       "echoes-4pc",
+					Damage:     dmgAdded,
+				})
 				s.Log.NewEvent("echoes 4pc adding dmg", core.LogArtifactEvent, c.CharIndex(),
 					"buff_expiry", procExpireF,
 					"dmg_added", dmgAdded,
@@ -78,7 +83,11 @@ func New(c core.Character, s *core.Core, count int, params map[string]int) {
 			}
 
 			dmgAdded = (atk.Snapshot.BaseAtk*(1+atk.Snapshot.Stats[core.ATKP]) + atk.Snapshot.Stats[core.ATK]) * 0.7
-			atk.Info.FlatDmg += dmgAdded
+			atk.Info.AddFlatDmg(core.FlatDamage{
+				ActorIndex: c.CharIndex(),
+				Abil:       "echoes-4pc",
+				Damage:     dmgAdded,
+			})
 
 			procExpireF = s.F + procDuration
 			icd = s.F + 12 //0.2s

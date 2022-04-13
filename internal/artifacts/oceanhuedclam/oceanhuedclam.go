@@ -99,8 +99,13 @@ func New(c core.Character, s *core.Core, count int, params map[string]int) {
 						ICDGroup:         core.ICDGroupDefault,
 						Element:          core.Physical,
 						IgnoreDefPercent: 1,
-						FlatDmg:          bubbleHealStacks * .9,
 					}
+					atk.AddFlatDmg(core.FlatDamage{
+						ActorIndex: atk.ActorIndex,
+						Abil:       atk.Abil,
+						Damage:     bubbleHealStacks * .9,
+					})
+
 					//snapshot -1 since we don't need stats
 					s.Combat.QueueAttack(atk, core.NewDefCircHit(3, true, core.TargettableEnemy), -1, 1)
 

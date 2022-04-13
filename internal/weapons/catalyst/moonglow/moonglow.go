@@ -34,7 +34,11 @@ func weapon(char core.Character, c *core.Core, r int, param map[string]int) stri
 		}
 
 		flatdmg := char.MaxHP() * nabuff
-		atk.Info.FlatDmg += flatdmg
+		atk.Info.AddFlatDmg(core.FlatDamage{
+			ActorIndex: char.CharIndex(),
+			Abil:       "moonglow",
+			Damage:     flatdmg,
+		})
 
 		c.Log.NewEvent("moonglow add damage", core.LogPreDamageMod, char.CharIndex(), "damage_added", flatdmg)
 		return false
