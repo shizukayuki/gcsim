@@ -47,7 +47,7 @@ func (c *char) skillPress(p map[string]int) {
 		ActorIndex: c.Index,
 		Abil:       "Yoohoo Art: Fuuin Dash (Press)",
 		AttackTag:  combat.AttackTagElementalArt,
-		ICDTag:     combat.ICDTagNone,
+		ICDTag:     combat.ICDTagSayuSkillAnemo,
 		ICDGroup:   combat.ICDGroupDefault,
 		Element:    attributes.Anemo,
 		Durability: 25,
@@ -77,6 +77,7 @@ func (c *char) skillPress(p map[string]int) {
 func (c *char) skillHold(p map[string]int, duration int) {
 
 	c.eInfused = attributes.NoElement
+	c.eInfusedTag = combat.ICDTagNone
 	c.eDuration = c.Core.F + 18 + duration + 20
 	c.infuseCheckLocation = combat.NewDefCircHit(0.1, true, combat.TargettablePlayer, combat.TargettableEnemy, combat.TargettableObject)
 	c.c2Bonus = .0
@@ -84,6 +85,8 @@ func (c *char) skillHold(p map[string]int, duration int) {
 	// ticks
 	i := 0
 	d := c.createSkillHoldSnapshot()
+	c.Core.Tasks.Add(c.absorbCheck(c.Core.F, 0, int(duration/12)), 18)
+
 	for ; i <= duration; i += 30 { // 1 tick for sure
 		c.Core.Tasks.Add(func() {
 			c.Core.QueueAttackEvent(d, 0)
@@ -119,8 +122,8 @@ func (c *char) createSkillHoldSnapshot() *combat.AttackEvent {
 	ai := combat.AttackInfo{
 		ActorIndex: c.Index,
 		Abil:       "Yoohoo Art: Fuuin Dash (Hold Tick)",
-		AttackTag:  combat.AttackTagElementalArt,
-		ICDTag:     combat.ICDTagNone,
+		AttackTag:  combat.AttackTagElementalArtHold,
+		ICDTag:     combat.ICDTagSayuSkillAnemo,
 		ICDGroup:   combat.ICDGroupDefault,
 		Element:    attributes.Anemo,
 		Durability: 25,
@@ -134,4 +137,31 @@ func (c *char) createSkillHoldSnapshot() *combat.AttackEvent {
 		SourceFrame: c.Core.F,
 		Snapshot:    snap,
 	})
+}
+
+func (c *char) absorbCheck(src, count, max int) func() {
+	return func() {
+		if count == max {
+			return
+		}
+
+		c.eInfused = c.Core.Combat.AbsorbCheck(c.infuseCheckLocation, attributes.Pyro, attributes.Hydro, attributes.Electro, attributes.Cryo)
+		if c.eInfused != attributes.NoElement {
+			switch c.eInfused {
+			case attributes.Pyro:
+				c.eInfusedTag = combat.ICDTagSayuSkillPyro
+			case attributes.Hydro:
+				c.eInfusedTag = combat.ICDTagSayuSkillHydro
+			case attributes.Electro:
+				c.eInfusedTag = combat.ICDTagSayuSkillElectro
+			case attributes.Cryo:
+				c.eInfusedTag = combat.ICDTagSayuSkillCryo
+			}
+			c.Core.Log.NewEventBuildMsg(glog.LogCharacterEvent, c.Index,
+				"sayu infused ", c.eInfused.String(),
+			)
+			return
+		}
+		c.Core.Tasks.Add(c.absorbCheck(src, count+1, max), 12)
+	}
 }

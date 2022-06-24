@@ -7,7 +7,6 @@ import (
 	"github.com/genshinsim/gcsim/pkg/core/attributes"
 	"github.com/genshinsim/gcsim/pkg/core/combat"
 	"github.com/genshinsim/gcsim/pkg/core/event"
-	"github.com/genshinsim/gcsim/pkg/core/glog"
 	"github.com/genshinsim/gcsim/pkg/core/keys"
 	"github.com/genshinsim/gcsim/pkg/core/player/character"
 	"github.com/genshinsim/gcsim/pkg/core/player/weapon"
@@ -16,6 +15,7 @@ import (
 type char struct {
 	*tmpl.Character
 	eInfused            attributes.Element
+	eInfusedTag         combat.ICDTag
 	eDuration           int
 	infuseCheckLocation combat.AttackPattern
 	c2Bonus             float64
@@ -43,7 +43,7 @@ func NewChar(s *core.Core, w *character.CharWrapper, p character.CharacterProfil
 	c.eDuration = -1
 	c.c2Bonus = .0
 
-	c.absorbCheck()
+	c.rollAbsorb()
 
 	w.Character = &c
 
@@ -70,8 +70,7 @@ func (c *char) updateSkillFrames(hold int) {
 	}
 }
 
-//TODO: shouldn't this be on a timer like kazu/sucrose/venti?
-func (c *char) absorbCheck() {
+func (c *char) rollAbsorb() {
 	c.Core.Events.Subscribe(event.OnAttackWillLand, func(args ...interface{}) bool {
 		atk := args[1].(*combat.AttackEvent)
 		if atk.Info.ActorIndex != c.Index {
@@ -80,22 +79,11 @@ func (c *char) absorbCheck() {
 		if atk.Info.AttackTag != combat.AttackTagElementalArt && atk.Info.AttackTag != combat.AttackTagElementalArtHold {
 			return false
 		}
-		if atk.Info.Element != attributes.Anemo {
+		if atk.Info.Element != attributes.Anemo || c.eInfused == attributes.NoElement {
 			return false
 		}
 		if c.Core.F > c.eDuration {
 			return false
-		}
-		if c.eInfused == attributes.NoElement {
-			// TODO: need to check yourself element first
-			c.eInfused = c.Core.Combat.AbsorbCheck(c.infuseCheckLocation, attributes.Pyro, attributes.Hydro, attributes.Electro, attributes.Cryo)
-			if c.eInfused == attributes.NoElement {
-				return false
-			}
-
-			c.Core.Log.NewEventBuildMsg(glog.LogCharacterEvent, c.Index,
-				"sayu infused ", c.eInfused.String(),
-			)
 		}
 
 		switch atk.Info.AttackTag {
@@ -103,8 +91,8 @@ func (c *char) absorbCheck() {
 			ai := combat.AttackInfo{
 				ActorIndex: c.Index,
 				Abil:       "Yoohoo Art: Fuuin Dash (Elemental DMG)",
-				AttackTag:  combat.AttackTagElementalArt,
-				ICDTag:     combat.ICDTagNone,
+				AttackTag:  combat.AttackTagElementalArtHold,
+				ICDTag:     c.eInfusedTag,
 				ICDGroup:   combat.ICDGroupDefault,
 				Element:    c.eInfused,
 				Durability: 25,
