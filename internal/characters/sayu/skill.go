@@ -8,37 +8,32 @@ import (
 	"github.com/genshinsim/gcsim/pkg/core/glog"
 )
 
+var skillPressFrames []int
+var skillHoldFrames []int
+
+const skillPressHitmark = 41
+const skillHoldHitmark = 79
+
+func init() {
+	// skill (press) -> x
+	skillPressFrames = frames.InitAbilSlice(skillPressHitmark)
+
+	// skill (hold) -> x
+	skillHoldFrames = frames.InitAbilSlice(skillHoldHitmark)
+}
+
 func (c *char) Skill(p map[string]int) action.ActionInfo {
 	hold := p["hold"]
-	c.updateSkillFrames(hold)
-	var cd, delay int
 	if hold > 0 {
 		if hold > 600 { // 10s
 			hold = 600
 		}
-
-		// 18 = 15 anim start + 3 to start swirling
-		// +2 frames for not proc the sacrificial by "Yoohoo Art: Fuuin Dash (Elemental DMG)"
-		delay = 18 + hold + 2
-		c.skillHold(p, hold)
-		cd = int(6*60 + float64(hold)*0.5)
-	} else {
-		delay = 15
-		c.skillPress(p)
-		cd = 6 * 60
+		return c.skillHold(p, hold)
 	}
-
-	c.SetCDWithDelay(action.ActionSkill, cd, delay)
-
-	return action.ActionInfo{
-		Frames:          frames.NewAbilFunc(c.skillFrames),
-		AnimationLength: c.skillFrames[action.InvalidAction],
-		CanQueueAfter:   c.skillFrames[action.InvalidAction],
-		State:           action.SkillState,
-	}
+	return c.skillPress(p)
 }
 
-func (c *char) skillPress(p map[string]int) {
+func (c *char) skillPress(p map[string]int) action.ActionInfo {
 
 	c.c2Bonus = 0.033
 
@@ -68,13 +63,21 @@ func (c *char) skillPress(p map[string]int) {
 		Mult:       skillPressEnd[c.TalentLvlSkill()],
 	}
 	snap = c.Snapshot(&ai)
-	c.Core.QueueAttackWithSnap(ai, snap, combat.NewDefCircHit(0.5, false, combat.TargettableEnemy), 3+25)
+	c.Core.QueueAttackWithSnap(ai, snap, combat.NewDefCircHit(0.5, false, combat.TargettableEnemy), 28)
 
-	c.Core.QueueParticle("sayu-skill", 2, attributes.Anemo, c.skillFrames[action.InvalidAction]+73)
+	c.Core.QueueParticle("sayu-skill", 2, attributes.Anemo, skillPressHitmark+73)
 
+	c.SetCDWithDelay(action.ActionSkill, 6*60, 15)
+
+	return action.ActionInfo{
+		Frames:          frames.NewAbilFunc(skillPressFrames),
+		AnimationLength: skillPressFrames[action.InvalidAction],
+		CanQueueAfter:   skillPressFrames[action.InvalidAction],
+		State:           action.SkillState,
+	}
 }
 
-func (c *char) skillHold(p map[string]int, duration int) {
+func (c *char) skillHold(p map[string]int, duration int) action.ActionInfo {
 
 	c.eInfused = attributes.NoElement
 	c.eInfusedTag = combat.ICDTagNone
@@ -83,11 +86,10 @@ func (c *char) skillHold(p map[string]int, duration int) {
 	c.c2Bonus = .0
 
 	// ticks
-	i := 0
 	d := c.createSkillHoldSnapshot()
 	c.Core.Tasks.Add(c.absorbCheck(c.Core.F, 0, int(duration/12)), 18)
 
-	for ; i <= duration; i += 30 { // 1 tick for sure
+	for i := 0; i <= duration; i += 30 { // 1 tick for sure
 		c.Core.Tasks.Add(func() {
 			c.Core.QueueAttackEvent(d, 0)
 
@@ -115,7 +117,18 @@ func (c *char) skillHold(p map[string]int, duration int) {
 	snap := c.Snapshot(&ai)
 	c.Core.QueueAttackWithSnap(ai, snap, combat.NewDefCircHit(0.5, false, combat.TargettableEnemy), 18+duration+20)
 
-	c.Core.QueueParticle("sayu-skill", 2, attributes.Anemo, c.skillFrames[action.InvalidAction]+73)
+	c.Core.QueueParticle("sayu-skill", 2, attributes.Anemo, skillHoldHitmark+73)
+
+	// 18 = 15 anim start + 3 to start swirling
+	// +2 frames for not proc the sacrificial by "Yoohoo Art: Fuuin Dash (Elemental DMG)"
+	c.SetCDWithDelay(action.ActionSkill, int(6*60+float64(duration)*0.5), 18+duration+2)
+
+	return action.ActionInfo{
+		Frames:          func(next action.Action) int { return skillHoldFrames[next] + duration },
+		AnimationLength: skillHoldFrames[action.InvalidAction] + duration,
+		CanQueueAfter:   skillHoldFrames[action.InvalidAction] + duration,
+		State:           action.SkillState,
+	}
 }
 
 func (c *char) createSkillHoldSnapshot() *combat.AttackEvent {
